@@ -52,7 +52,7 @@ type Options struct {
 	RootHandler     func(*slog.Logger, gotuna.App, *Config) http.Handler // if set, is called after aliases and redirects (if either defines "/", this handler thus will never be called)
 	NotFoundHandler func(*slog.Logger, gotuna.App, *Config) http.Handler // if set, will be used instead of default notFoundHandler
 	ViewFS          fs.FS                                                // if set, has precedence over ViewsDir
-	StyleFS         fs.FS                                                // alternative directory containing css/, img/ and font/
+	ThemeFS         fs.FS                                                // optional theme directory (containing css/, img/ and font/)
 }
 
 func NewDefaultConfig() Config {
@@ -76,7 +76,7 @@ func MakeApp(logger *slog.Logger, cfg Config) gotuna.App {
 
 func MakeAppWithOptions(logger *slog.Logger, cfg Config, opts Options) gotuna.App {
 	var viewFiles fs.FS
-	var styleFiles fs.FS = opts.StyleFS // nil means to use default assets
+	var themeFiles fs.FS = opts.ThemeFS
 
 	if opts.ViewFS != nil {
 		viewFiles = opts.ViewFS
@@ -115,12 +115,12 @@ func MakeAppWithOptions(logger *slog.Logger, cfg Config, opts Options) gotuna.Ap
 	// other
 	app.Router.Handle("/faucet", handlerFaucet(logger, app, &cfg))
 
-	if styleFiles != nil {
+	if themeFiles != nil {
 		// alternative styling for css, font and img.
 		// if assets are not found here, static/* assets are
 		// still handled by the next line after this if-block
 		// which works as a fallthrough.
-		app.Router.Handle("/static/{path:(?:css|font|img)/.+}", handlerStaticFile(logger, app, &cfg, styleFiles))
+		app.Router.Handle("/static/{path:(?:css|font|img)/.+}", handlerStaticFile(logger, app, &cfg, themeFiles))
 	}
 	app.Router.Handle("/static/{path:.+}", handlerStaticFile(logger, app, &cfg, app.Static))
 	app.Router.Handle("/favicon.ico", handlerFavicon(logger, app, &cfg))
@@ -471,7 +471,7 @@ func handlerStaticFile(logger *slog.Logger, app gotuna.App, cfg *Config, filesys
 		fpath := filepath.Clean(vars["path"])
 		logger.Debug("Serving ", "static", fpath)
 		f, err := fs.Open(fpath)
-		if os.IsNotExist(err) {
+		if os.IsNotExist(err) || err != nil || f == nil {
 			logger.Debug("Not found: " + fpath)
 			handleNotFound(logger, app, cfg, fpath, w, r)
 			return
