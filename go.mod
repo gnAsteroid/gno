@@ -1,4 +1,4 @@
-module github.com/gnolang/gno
+module github.com/gnAsteroid/gno
 
 go 1.22
 
