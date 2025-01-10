@@ -14,7 +14,7 @@ require (
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.3.0
 	github.com/fortytw2/leaktest v1.3.0
 	github.com/gdamore/tcell/v2 v2.7.4
-	github.com/gnolang/gno v0.2.0
+	// github.com/gnolang/gno v0.2.0
 	github.com/gnolang/overflow v0.0.0-20170615021017-4d914c927216
 	github.com/golang/protobuf v1.5.4
 	github.com/google/gofuzz v1.2.0
